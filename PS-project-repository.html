@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Sol | File Repository</title>
+    <style>
+        body {
+            font-family: Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: black;
+            color: red;
+            overflow-y: scroll;
+            scrollbar-color: rgba(255, 0, 0, 0.3) black; /* For Firefox */
+            scrollbar-width: thin; /* For Firefox */
+        }
+        ::-webkit-scrollbar {
+            width: 10px; /* For Chrome, Safari, and Opera */
+        }
+        ::-webkit-scrollbar-track {
+            background: black;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 0, 0, 0.3);
+            border: 2px solid black;
+            border-radius: 5px;
+        }
+        .container {
+            background: black;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+            text-align: center;
+        }
+        .file-list {
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid red;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .file-item:hover {
+            background-color: rgba(255, 0, 0, 0.1);
+        }
+        input[type="text"], input[type="file"], select, button {
+            color: red;
+            background-color: black;
+            border: 1px solid red;
+            padding: 5px;
+            font-family: Courier, monospace;
+            margin-bottom: 10px;
+        }
+        input[type="file"]::-webkit-file-upload-button {
+            color: red;
+            background: black;
+            border: 1px solid red;
+            padding: 5px;
+            font-family: Courier, monospace;
+        }
+        input[type="file"]::-moz-file-upload-button {
+            color: red;
+            background: black;
+            border: 1px solid red;
+            padding: 5px;
+            font-family: Courier, monospace;
+        }
+        button {
+            color: red;
+            background: black;
+            border: 1px solid red;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: red;
+            color: black;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+        .modal-content {
+            background-color: black;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid red;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+            color: red;
+            text-align: center;
+        }
+        .close {
+            color: red;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+        }
+        .file-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-grow: 1;
+        }
+        .file-info span {
+            margin-right: 10px;
+        }
+        .file-info .file-size {
+            flex-grow: 0.5;
+        }
+        .file-item a {
+            flex-grow: 2;
+            text-align: left;
+            margin-right: 20px;
+            cursor: pointer;
+            color: red;
+            text-decoration: none; /* Remove underline */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Project Sol</h1>
+        <h2>File Repository | Upload Center</h2>
+
+        <!-- Upload File(s) Button -->
+        <button onclick="openModal('uploadModal')">Upload File</button>
+        <!-- Delete All Files Button -->
+        <button onclick="openModal('confirmDeleteAllModal')">Delete All Files</button>
+    </div>
+
+    <!-- File List -->
+    <div class="file-list" id="fileList">
+        <!-- Files will be dynamically added here -->
+    </div>
+
+    <!-- Upload Modal -->
+    <div id="uploadModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('uploadModal')">&times;</span>
+            <h2 id="modalTitle">Upload File</h2>
+            <input type="text" id="fileNameInput" placeholder="Enter file name"><br><br>
+            <input type="file" id="fileInput"><br><br>
+            <button id="uploadButton" onclick="uploadFiles()">Upload</button>
+        </div>
+    </div>
+
+    <!-- Confirm Delete All Modal -->
+    <div id="confirmDeleteAllModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('confirmDeleteAllModal')">&times;</span>
+            <h2>Confirm Delete All</h2>
+            <p>Are you sure you want to delete all files?</p>
+            <button onclick="deleteAllFiles()">Delete All</button>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('editModal')">&times;</span>
+            <h2>Edit File Information</h2>
+            <input type="text" id="editFileNameInput">
+            <button onclick="saveEdit()">Save</button>
+        </div>
+    </div>
+
+    <!-- File Details Modal -->
+    <div id="fileDetailsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('fileDetailsModal')">&times;</span>
+            <h2>File Details</h2>
+            <div id="fileDetails"></div>
+            <button onclick="downloadFile()">Download</button>
+        </div>
+    </div>
+
+    <script>
+        let storedFiles = JSON.parse(localStorage.getItem('files')) || [];
+
+        function openModal(modalId, fileIndex = null) {
+            const modal = document.getElementById(modalId);
+            modal.style.display = 'block';
+
+            if (modalId === 'uploadModal') {
+                if (fileIndex !== null) {
+                    const file = storedFiles[fileIndex];
+                    document.getElementById('modalTitle').textContent = 'Edit File';
+                    document.getElementById('fileNameInput').value = file.name;
+                    document.getElementById('uploadButton').textContent = 'Update';
+                    document.getElementById('uploadButton').dataset.fileIndex = fileIndex;
+                } else {
+                    document.getElementById('modalTitle').textContent = 'Upload File';
+                    document.getElementById('fileNameInput').value = '';
+                    document.getElementById('uploadButton').textContent = 'Upload';
+                    document.getElementById('uploadButton').removeAttribute('data-file-index');
+                }
+            } else if (modalId === 'confirmDeleteAllModal') {
+            } else if (modalId === 'editModal' && fileIndex !== null) {
+                const file = storedFiles[fileIndex];
+                document.getElementById('editFileNameInput').value = file.name;
+                document.getElementById('editModal').dataset.fileIndex = fileIndex;
+            } else if (modalId === 'fileDetailsModal' && fileIndex !== null) {
+                const file = storedFiles[fileIndex];
+                const fileDetailsDiv = document.getElementById('fileDetails');
+                fileDetailsDiv.innerHTML = `
+                    <p><strong>File Name:</strong> ${file.name}</p>
+                    <p><strong>File Size:</strong> ${formatFileSize(file.size)}</p>
+                    <p><strong>Upload Date:</strong> ${file.uploadDate}</p>
+                `;
+                document.getElementById('fileDetailsModal').dataset.fileIndex = fileIndex;
+            }
+
+            // Enable modal key bindings for Enter and Escape keys
+            document.addEventListener('keydown', modalKeyHandler);
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.style.display = 'none';
+
+            if (modalId === 'uploadModal') {
+                document.getElementById('fileNameInput').value = '';
+                document.getElementById('fileInput').value = '';
+            } else if (modalId === 'editModal') {
+                document.getElementById('editFileNameInput').value = '';
+            }
+
+            // Disable modal key bindings
+            document.removeEventListener('keydown', modalKeyHandler);
+        }
+
+        function modalKeyHandler(event) {
+            const modals = document.getElementsByClassName('modal');
+            for (let i = 0; i < modals.length; i++) {
+                if (modals[i].style.display === 'block') {
+                    if (event.key === 'Escape') {
+                        closeModal(modals[i].id);
+                    }
+                    if (event.key === 'Enter') {
+                        if (modals[i].id === 'uploadModal') {
+                            uploadFiles();
+                        } else if (modals[i].id === 'editModal') {
+                            saveEdit();
+                        }
+                    }
+                }
+            }
+        }
+
+        function uploadFiles() {
+            const fileNameInput = document.getElementById('fileNameInput').value.trim() || document.getElementById('fileInput').files[0].name;
+            const fileInput = document.getElementById('fileInput');
+            const fileIndex = document.getElementById('uploadButton').dataset.fileIndex;
+
+            if (!fileInput.files.length && fileIndex === undefined) {;
+                return;
+            }
+
+            const fileReader = new FileReader();
+
+            fileReader.onload = function(e) {
+                const fileData = e.target.result;
+
+                if (fileIndex !== undefined) {
+                    const file = storedFiles[fileIndex];
+                    file.name = fileNameInput;
+                    file.size = fileInput.files[0] ? fileInput.files[0].size : file.size;
+                    file.uploadDate = new Date().toLocaleString();
+                    file.data = fileInput.files[0] ? fileData : file.data;
+                    storedFiles[fileIndex] = file;
+                } else {
+                    const file = {
+                        name: fileNameInput,
+                        size: fileInput.files[0].size,
+                        uploadDate: new Date().toLocaleString(),
+                        data: fileData
+                    };
+                    storedFiles.push(file);
+                }
+
+                localStorage.setItem('files', JSON.stringify(storedFiles));
+                updateFileList();
+                closeModal('uploadModal');
+            };
+
+            if (fileInput.files.length) {
+                fileReader.readAsDataURL(fileInput.files[0]);
+            } else {
+                fileReader.onload({target: {result: storedFiles[fileIndex].data}});
+            }
+        }
+
+        function updateFileList() {
+            const fileListContainer = document.getElementById('fileList');
+            fileListContainer.innerHTML = '';
+            storedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.classList.add('file-item');
+                fileItem.setAttribute('onclick', `viewFileDetails(${index})`);
+                fileItem.innerHTML = `
+                    <a>${file.name}</a>
+                    <div class="file-info">
+                        <span class="file-size">${formatFileSize(file.size)}</span>
+                        <span>${file.uploadDate}</span>
+                        <button class="edit-button" data-index="${index}">Edit</button>
+                        <button class="delete-button" data-index="${index}">Delete</button>
+                    </div>
+                `;
+                fileListContainer.appendChild(fileItem);
+            });
+
+            // Attach event listeners to the edit and delete buttons
+            const editButtons = document.querySelectorAll('.edit-button');
+            const deleteButtons = document.querySelectorAll('.delete-button');
+
+            editButtons.forEach(button => {
+                button.addEventListener('click', function(event) {
+                    event.stopPropagation(); // Prevent click from bubbling up
+                    const index = button.getAttribute('data-index');
+                    editFile(index);
+                });
+            });
+
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function(event) {
+                    event.stopPropagation(); // Prevent click from bubbling up
+                    const index = button.getAttribute('data-index');
+                    deleteFile(index);
+                });
+            });
+        }
+
+        function viewFileDetails(fileIndex) {
+            openModal('fileDetailsModal', fileIndex);
+        }
+
+        function downloadFile() {
+            const fileIndex = document.getElementById('fileDetailsModal').dataset.fileIndex;
+            const file = storedFiles[fileIndex];
+            const a = document.createElement('a');
+            a.href = file.data;
+            a.download = file.name;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function editFile(fileIndex) {
+            openModal('uploadModal', fileIndex);
+        }
+
+        function deleteFile(fileIndex) {
+            storedFiles.splice(fileIndex, 1);
+            localStorage.setItem('files', JSON.stringify(storedFiles));
+            updateFileList();
+        }
+
+        function deleteAllFiles() {
+            storedFiles = [];
+            localStorage.setItem('files', JSON.stringify(storedFiles));
+            updateFileList();
+            closeModal('confirmDeleteAllModal');
+        }
+
+        function saveEdit() {
+            const fileIndex = document.getElementById('editModal').dataset.fileIndex;
+            const newFileName = document.getElementById('editFileNameInput').value.trim();
+            if (newFileName) {
+                storedFiles[fileIndex].name = newFileName;
+                localStorage.setItem('files', JSON.stringify(storedFiles));
+                updateFileList();
+                closeModal('editModal');
+            } else {;
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024,
+                sizes = ['B', 'KB', 'MB', 'GB', 'TB'],
+                i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Load the initial file list
+        document.addEventListener('DOMContentLoaded', updateFileList);
+    </script>
+</body>
+</html>

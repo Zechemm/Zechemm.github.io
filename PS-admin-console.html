@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer's Console</title>
+    <style>
+        /* General styles */
+        .alert {
+            display: none;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background-color: black;
+            color: red;
+            padding: 20px;
+            border: 1px solid red;
+            border-radius: 8px;
+            z-index: 1;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert .close {
+            color: red;
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .alert p {
+            margin: 0;
+            color: red;
+        }
+
+        body {
+            background-color: #000;
+            color: #ff0000;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            scrollbar-color: rgba(255, 0, 0, 0.3) black; /* For Firefox */
+            scrollbar-width: thin; /* For Firefox */
+        }
+
+        .console {
+            width: 80%;
+            max-width: 600px;
+            background-color: #000;
+            color: #ff0000;
+            border: 1px solid #ff0000;
+            padding: 20px;
+            box-sizing: border-box;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+            text-align: center; /* Center text */
+            margin: auto; /* Center console */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        input[type="text"] {
+            background-color: #000;
+            color: #ff0000;
+            border: none;
+            border-bottom: 1px solid #ff0000;
+            padding: 10px;
+            font-size: 1em;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 5px; /* Adjusted margin */
+        }
+
+        .suggestions-container {
+            position: relative;
+        }
+
+        .suggestions {
+            position: absolute;
+            top: calc(100% - 1px); /* Position suggestions right below input */
+            left: 0;
+            z-index: 1000;
+            width: 100%;
+            max-height: 120px;
+            overflow-y: auto;
+            background-color: #1a1a1a;
+            border: 1px solid #ff0000;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+            padding: 5px;
+            display: none;
+        }
+
+        .suggestions p {
+            color: #ff0000;
+            padding: 5px;
+            margin: 0;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .suggestions p:hover {
+            background-color: #333333;
+        }
+
+        .suggestions.active {
+            display: block;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: black;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid red;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+            color: red;
+            position: relative;
+        }
+
+        .close {
+            color: red;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+        }
+
+        .account-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+            background-color: #1a1a1a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .account-item p {
+            margin: 0;
+        }
+
+        .delete-btn {
+            color: red;
+            background-color: black;
+            border: 1px solid red;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .delete-btn:hover {
+            background-color: red;
+            color: black;
+        }
+
+        .edit-btn {
+            color: red;
+            background-color: black;
+            border: 1px solid red;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .edit-btn:hover {
+            background-color: red;
+            color: black;
+        }
+
+        /* Added style for output container */
+        .output-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            margin-top: 20px; /* Adjust spacing */
+        }
+
+        .output {
+            background-color: #000;
+            color: #ff0000;
+            border: 1px solid #ff0000;
+            padding: 20px;
+            box-sizing: border-box;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+            max-height: 300px; /* Limit height if needed */
+            overflow-y: auto; /* Enable vertical scrolling */
+            width: 80%; /* Adjust width as needed */
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        /* Profile icon styles */
+        .profile-icon {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+            z-index: 1000;
+            width: 50px;
+            height: auto;
+        }
+
+        .profile-modal {
+            display: none;
+            position: fixed;
+            z-index: 2;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.4);
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+        }
+
+        .profile-modal-content {
+            background-color: black;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid red;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+            color: red;
+            position: relative;
+        }
+
+        .profile-close {
+            color: red;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .profile-close:hover,
+        .profile-close:focus {
+            color: black;
+            text-decoration: none;
+        }
+        
+        #userProfileIcon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+        }
+        
+        #userProfileIcon img {
+            width: 50px;
+            height: auto;
+        }
+
+        .profile-modal input[type="text"],
+        .profile-modal input[type="password"] {
+            background-color: #000;
+            color: #ff0000;
+            border: none;
+            border-bottom: 1px solid #ff0000;
+            padding: 10px;
+            font-size: 1em;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 5px;
+        }
+
+        .profile-modal button {
+            background-color: black;
+            color: red;
+            border: 1px solid red;
+            padding: 10px;
+            font-size: 1em;
+            cursor: pointer;
+            margin: 5px 0;
+            width: 100%;
+        }
+
+        .profile-modal button:hover {
+            background-color: red;
+            color: black;
+        }
+        .badge {
+            display: inline-block;
+            margin: 5px;
+            padding: 1px 10px;
+            background-color: black;
+            color: red;
+            cursor: pointer;
+            width: 50px;
+            height: auto;
+        }
+        .badge:hover {
+            background-color: rgb(0, 0, 0);
+            color: black;
+        }
+        .badge-container {
+            position: relative; /* Ensure relative positioning for containing the badge and text */
+            display: inline-block;
+            margin: 5px;
+        }
+
+        .badge {
+            width: 50px; /* Adjust size as needed */
+            height: auto;
+            cursor: pointer;
+        }
+        .badge-text {
+            position: absolute;
+            top: -25px; /* Adjust this to position the text above the badge */
+            left: 50%; /* Center horizontally */
+            transform: translateX(-50%); /* Center horizontally */
+            color: #ff0000; /* Same color as your theme */
+            font-family: 'Courier New', Courier, monospace; /* Same font as your theme */
+            font-size: 0.8em; /* Adjust font size as needed */
+            display: none; /* Initially hide text */
+        }
+
+        .badge-container:hover .badge-text {
+            display: block; /* Show text on hover */
+        }
+
+        .button {
+            background-color: black;
+            color: red;
+            border: 1px solid red;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .button:hover {
+            background-color: red;
+            color: black;
+        }
+
+        .select {
+            background-color: black;
+            color: red;
+            border: 1px solid red;
+            padding: 10px;
+            width: 100%;
+            margin-top: 10px;
+            -webkit-appearance: none;  /* Remove default styling */
+            -moz-appearance: none;     /* Remove default styling */
+            appearance: none;          /* Remove default styling */
+        }
+
+        .select option {
+            background-color: black;
+            color: red;
+        }
+        .custom-input-popup {
+            background-color: black;
+            margin: 0 auto; /* Center horizontally */
+            padding: 20px;
+            border: 1px solid red;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+            color: red;
+            position: fixed; /* Fixed position */
+            top: 50%; /* Center vertically */
+            left: 50%; /* Center horizontally */
+            transform: translate(-50%, -50%); /* Center alignment */
+            display: none;
+            z-index: 1000; /* Adjust the z-index as needed */
+        }
+
+
+
+        .custom-input-popup .input-content {
+            text-align: center;
+        }
+
+        .custom-input-popup p {
+            margin: 0;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .custom-input-popup input[type="text"] {
+            padding: 8px;
+            margin-bottom: 10px;
+            width: calc(100% - 16px);
+            box-sizing: border-box;
+            font-family: Courier, monospace;
+        }
+
+        .custom-input-popup .button-container {
+            display: flex;
+            justify-content: center;
+        }
+
+        .custom-input-popup button {
+            padding: 8px 16px;
+            margin: 0 5px;
+            background-color: #000;
+            color: #f00;
+            border: 1px solid #f00;
+            cursor: pointer;
+            font-family: Courier, monospace;
+        }
+
+        .custom-input-popup button:hover {
+            background-color: #f00;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+<div id="customInputPopup" class="custom-input-popup">
+    <div class="input-content">
+        <p id="inputMessage"></p>
+        <input type="text" id="inputUsername" placeholder="Enter username">
+        <div class="button-container">
+            <button id="confirmInputButton" onclick="confirmInput()">Confirm</button>
+            <button id="cancelInputButton" onclick="cancelInput()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Alert Modal -->
+<div id="customAlert" class="alert">
+    <span class="close" onclick="closeAlert()">&times;</span>
+    <p id="alertMessage"></p>
+</div>
+
+<div class="console">
+    <h1>Project Sol</h1>
+    <h2>Network Command Console</h2>
+    <div class="suggestions-container">
+        <input type="text" id="commandInput" onkeyup="handleCommand(event)" placeholder="Enter command...">
+        <div id="suggestions" class="suggestions"></div>
+    </div>
+</div>
+
+<!-- Output area -->
+<div class="output-container">
+    <div class="output" id="output"></div>
+</div>
+
+<!-- Profile Modal -->
+<div id="profileModal" class="profile-modal">
+    <div class="profile-modal-content">
+        <span class="profile-close" onclick="closeProfileModal()">&times;</span>
+        <h2>User Profile</h2>
+        <p>Current Username: <span id="currentUsername"></span></p>
+        <hr>
+        <h3>Badges</h3>
+        <div id="badgeContainer"></div>
+        <select id="badgeSelect" class="select">
+            <option value="">BADGE REPOSITORY</option>
+            <option value="admin">ADMIN</option>
+            <!-- Add more options as needed -->
+        </select>
+        <button class="button" onclick="assignBadge()">Assign Badge</button>
+        <button onclick="removeBadge()">Remove Badge</button>
+        <hr>
+    </div>
+</div>
+<!-- Notepad Modal -->
+<div id="notepadModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeNotepad()">&times;</span>
+        <h2>Debug Notepad</h2>
+        <textarea id="notepadText" rows="15" style="width: 100%; background-color: black; color: red; border: 1px solid red; padding: 10px; box-sizing: border-box;"></textarea>
+        <button class="button" style="color: red; background-color: black;" onclick="saveNotepad()">Save</button>
+    </div>
+</div>
+<!-- Include accountsystem.js for profile management functionality -->
+<script src="accountsystem.js"></script>
+<script src="admin-console.js"></script>
+<!-- Modal for Account Management -->
+<div id="accountManagementModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeAccountManagementModal()">&times;</span>
+        <h2>Existing Accounts</h2>
+        <div id="accountList"></div>
+    </div>
+</div><!-- Modal for Account Management -->
+<script>
+function displayAccounts() {
+    let accounts = JSON.parse(localStorage.getItem('sharedAccounts')) || []; // Retrieve and parse accounts from localStorage
+    if (!Array.isArray(accounts)) {
+        console.warn('Accounts data retrieved from localStorage is not an array:', accounts);
+        accounts = []; // Reset accounts to empty array if retrieved data is not an array
+    }
+
+    let accountList = document.getElementById('accountList');
+    if (!accountList) {
+        console.warn('Account list container not found in the DOM.');
+        return;
+    }
+    accountList.innerHTML = ''; // Clear existing content in accountList
+
+    accounts.forEach(account => {
+        let accountItem = document.createElement('div');
+        accountItem.classList.add('account-item');
+
+        let accountInfo = document.createElement('p');
+        accountInfo.textContent = `Username: ${account.username}`;
+
+
+        let editBtn = document.createElement('button');
+        editBtn.classList.add('edit-btn');
+        editBtn.textContent = 'Edit'; // Text content of the edit button
+        editBtn.onclick = function() {
+        console.log('Edit button clicked!'); // Debugging statement
+        displayUserProfile(account.username); // Display profile when edit button is clicked
+
+
+        let deleteBtn = document.createElement('button');
+        deleteBtn.classList.add('delete-btn');
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.onclick = function() {
+            deleteAccount(account.username);
+        };
+
+        accountItem.appendChild(accountInfo);
+        accountItem.appendChild(ed);
+        accountItem.appendChild(deleteBtn);
+        accountList.appendChild(accountItem);
+    }});
+}
+
+function deleteAccount(username) {
+    let accounts = JSON.parse(localStorage.getItem('sharedAccounts')) || [];
+    if (!Array.isArray(accounts)) {
+        console.warn('Accounts data retrieved from localStorage is not an array:', accounts);
+        accounts = []; // Reset accounts to empty array if retrieved data is not an array
+    }
+
+    let updatedAccounts = accounts.filter(account => account.username !== username);
+    localStorage.setItem('sharedAccounts', JSON.stringify(updatedAccounts));
+    displayAccounts(); // Update display after deletion
+}
+
+
+
+</script>
+
+
+</body>
+</html>

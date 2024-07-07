@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Development Network</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #ff0000;
+            font-family: 'Courier New', Courier, monospace;
+            line-height: 1.6;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            cursor: url(cursor.png), auto;
+        }
+        .video-container {
+            width: 50%;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .video-container video {
+            max-width: 50%;
+            height: auto;
+        }
+        .container {
+            max-width: 800px;
+            padding: 10px;
+            border: 1px solid #ff0000;
+            text-align: center;
+            overflow-x: auto;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+        h1 {
+            color: #ff0000;
+            font-size: 1.5em;
+        }
+        h2 {
+            color: #ff0000;
+            font-size: 1.2em;
+        }
+        p, pre {
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+        pre {
+            text-align: left;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        hr {
+            border: 1px solid #ff0000;
+        }
+        a {
+            color: #ff0000;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .hidden {
+            display: none;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+        .modal-content {
+            background-color: black;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid red;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+            color: red;
+            position: relative;
+        }
+        .close {
+            color: red;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        button {
+            color: red;
+            background: black;
+            border: 1px solid red;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: red;
+            color: black;
+        }
+        input[type="text"], input[type="password"], input[type="file"] {
+            color: red;
+            background-color: black;
+            border: 1px solid red;
+            padding: 5px;
+            font-family: "Courier New", Courier, monospace;
+        }
+        input[type="password"], input[type="text"] {
+            -webkit-text-security: disc;
+        }
+        input[type="file"]::-webkit-file-upload-button {
+            color: red;
+            background: black;
+            border: 1px solid red;
+            padding: 5px;
+            font-family: "Courier New", Courier, monospace;
+        }
+        .alert {
+            display: none;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background-color: black;
+            color: red;
+            padding: 20px;
+            border: 1px solid red;
+            border-radius: 8px;
+            z-index: 1;
+        }
+        .alert.show {
+            display: block;
+        }
+        #userProfileIcon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+        }
+        #userProfileIcon img {
+            width: 50px;
+            height: auto;
+        }
+        .badge {
+            display: inline-block;
+            margin: 5px;
+            padding: 1px 10px;
+            background-color: black;
+            color: red;
+            cursor: pointer;
+            width: 50px;
+            height: auto;
+        }
+        .badge:hover {
+            background-color: rgb(0, 0, 0);
+            color: black;
+        }
+        .badge-container {
+            position: relative; /* Ensure relative positioning for containing the badge and text */
+            display: inline-block;
+            margin: 5px;
+        }
+
+        .badge {
+            width: 50px; /* Adjust size as needed */
+            height: auto;
+            cursor: pointer;
+        }
+        
+        .badge-text {
+            color: black; /* Default text color */
+            transition: color 0.3s ease; /* Smooth transition for color change */
+            position: absolute;
+            width: 50px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .badge-container:hover .badge-text {
+            color: red; /* Text color when hovered over */
+        }
+
+
+    </style>
+</head>
+<body>
+    <div class="video-container">
+        <video autoplay muted loop>
+            <source src="systemeye.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+    <div class="container">
+        <header>
+            <h1>Development Network</h1>
+            <div id="userProfileIcon" onclick="openUserProfile()">
+                <img src="user-icon.png" alt="User Profile">
+            </div>
+        </header>
+        <main>
+            <section id="loginSection">
+                <h2>Login Required</h2>
+                <input type="text" id="username" placeholder="Username" required><br><br>
+                <input type="password" id="password" placeholder="Password" required><br><br>
+                <button id="loginButton" onclick="login()">Login</button>
+                <button id="createAccountButton" onclick="openCreateAccount()">Create Account</button>
+            </section>
+            <section id="programSection" class="hidden">
+                <!-- Content for authenticated users -->
+                <h2>Projects and Programs</h2>
+                <ul>
+                    <li><a href="project-sol-menu.html">Project Sol</a></li>
+                </ul>
+            </section>
+        </main>
+        <footer>
+            <p>&copy; 2024 Christian Diveley. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <!-- Create Account Modal -->
+    <div id="createAccountModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeCreateAccountModal()">&times;</span>
+            <h2>Create Account</h2>
+            <input type="text" id="newUsername" placeholder="New Username" required><br><br>
+            <input type="text" id="verifyUsername" placeholder="Re-enter Username" required><br><br>
+            <input type="password" id="newPassword" placeholder="New Password" required><br><br>
+            <input type="password" id="verifyPassword" placeholder="Re-enter Password" required><br><br>
+            <button id="createAccountButton" onclick="createAccount()">Create</button>
+            <p id="createAccountMessage" style="color: green;"></p>
+        </div>
+    </div>
+
+    <div id="userProfileModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeUserProfileModal()">&times;</span>
+            <h2>User Profile</h2>
+            <p>Current Username: <span id="currentUsername"></span></p>
+            <hr>
+            <h3>Badges</h3>
+            <div id="badgeContainer"></div> <!-- Container for badges -->
+            <hr>
+            <h3>Edit Account Settings</h3>
+            <input type="text" id="editUsername" placeholder="New Username"><br><br>
+            <input type="password" id="editPassword" placeholder="New Password"><br><br>
+            <button onclick="updateAccount()">Update</button>
+            <button onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <!-- Custom Alert Modal -->
+    <div id="customAlert" class="alert">
+        <span class="close" onclick="closeAlert()">&times;</span>
+        <p id="alertMessage"></p>
+    </div>
+
+    <script src="accountsystem.js"></script>
+</body>
+</html>

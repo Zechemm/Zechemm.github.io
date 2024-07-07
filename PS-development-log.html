@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Sol - Development Log</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #ff0000;
+            font-family: 'Courier New', Courier, monospace;
+            line-height: 1.6;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            padding: 20px;
+            border: 1px solid #ff0000;
+            text-align: center;
+            background-color: #000;
+        }
+        h1 {
+            color: #ff0000;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        h2 {
+            color: #ff0000;
+            font-size: 1.5em;
+            margin-top: 20px;
+        }
+        .entry-box {
+            display: inline-block;
+            width: 150px;
+            height: 150px;
+            background-color: #000;
+            color: #ff0000;
+            border: 1px solid #ff0000;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin: 10px;
+            position: relative;
+            padding: 10px;
+            box-sizing: border-box;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .entry-box:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+        }
+        .entry-box h3 {
+            margin: 0;
+            font-size: 1.2em;
+            height: 40px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .entry-box h4 {
+            margin: 0;
+            font-size: 1em;
+            height: 20px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .entry-date {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            width: 100%;
+            background-color: #000;
+            color: #ff0000;
+            padding: 5px 0;
+            font-size: 0.9em; /* Reduced font size to fit within the box */
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+            padding-top: 60px;
+        }
+        .modal-content {
+            background-color: #000;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 20px;
+            border: 1px solid #ff0000;
+            width: 80%;
+            max-width: 600px;
+            margin: auto;
+            color: #ff0000;
+        }
+        .modal-content::-webkit-scrollbar {
+            width: 10px;
+            background-color: #000;
+        }
+        .modal-content::-webkit-scrollbar-thumb {
+            background-color: #ff0000;
+            border-radius: 5px;
+        }
+        .modal-content {
+            scrollbar-width: thin;
+            scrollbar-color: #ff0000 #000;
+        }
+        .close {
+            color: #ff0000;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover,
+        .close:focus {
+            color: #fff;
+            text-decoration: none;
+        }
+        input[type="text"], input[type="password"], textarea, button {
+            background-color: #000;
+            color: #ff0000;
+            border: 1px solid #ff0000;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 1em;
+            width: calc(100% - 22px);
+            box-sizing: border-box;
+        }
+        button {
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        button:hover {
+            background-color: #ff0000;
+            color: #000;
+        }
+        .button-group {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        .modal ul {
+            list-style-type: disc;
+            padding-left: 20px;
+        }
+        .modal ul li {
+            color: #ff0000;
+            font-size: 1em;
+            margin-top: 5px;
+        }
+        .custom-alert {
+            background-color: #000;
+            border: 1px solid #ff0000;
+            color: #ff0000;
+            padding: 20px;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            display: none;
+        }
+        .custom-alert button {
+            background-color: #000;
+            color: #ff0000;
+            border: 1px solid #ff0000;
+            padding: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Project Sol</h1>
+            <h2>Development Log</h2>
+        </header>
+        <main id="entryList">
+            <!-- Entry boxes will be dynamically added here -->
+        </main>
+        <footer>
+            <button onclick="openEntryPopup()">Add Entry</button>
+            <button onclick="openDeleteEntryModal()">Remove Log</button>
+            <p>&copy; 2024 Project Sol. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <!-- View Entry Modal -->
+    <div id="viewEntryModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('viewEntryModal')">&times;</span>
+            <h2 id="viewEntryTitle"></h2>
+            <p id="viewEntryVersion"></p>
+            <p id="viewEntryDate"></p>
+            <h3>Description</h3>
+            <ul id="viewEntryDescription"></ul>
+            <h3>Notable Bugs</h3>
+            <ul id="viewEntryBugs"></ul>
+            <div class="button-group">
+                <button onclick="openEditEntryModal()">Edit Entry</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create/Edit Entry Modal -->
+    <div id="entryModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('entryModal')">&times;</span>
+            <h2 id="modalTitle"></h2>
+            <input type="hidden" id="entryId">
+            <input type="text" id="entryTitle" placeholder="Entry Title" style="background-color: #000; color: #ff0000;">
+            <input type="text" id="entryVersion" placeholder="Program Version (v., v.0.1, etc)" style="background-color: #000; color: #ff0000;">
+            <textarea id="entryDescription" rows="5" placeholder="Enter description..." style="background-color: #000; color: #ff0000;"></textarea>
+            <textarea id="entryBugs" rows="3" placeholder="Notable bugs (if any)..." style="background-color: #000; color: #ff0000;"></textarea>
+            <input type="password" id="pinEntry" placeholder="Enter PIN" style="background-color: #000; color: #ff0000;">
+            <br>
+            <button id="saveEntryButton" onclick="saveEntry()">Save Entry</button>
+        </div>
+    </div>
+
+    <!-- Delete Entry Modal -->
+    <div id="deleteEntryModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('deleteEntryModal')">&times;</span>
+            <h2>Delete Entry</h2>
+            <p>Enter Entry Title to Delete:</p>
+            <input type="text" id="deleteEntryTitle" style="background-color: #000; color: #ff0000;">
+            <br>
+            <button onclick="confirmDeleteEntry()">Delete</button>
+        </div>
+    </div>
+
+    <!-- Custom Alert -->
+    <div id="customAlert" class="custom-alert">
+        <p id="customAlertMessage"></p>
+        <button onclick="closeCustomAlert()">OK</button>
+    </div>
+
+    <script>
+        const PIN = "8177";
+        let entries = JSON.parse(localStorage.getItem('entries')) || [];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            renderEntries();
+        });
+
+        function renderEntries() {
+            const entryList = document.getElementById('entryList');
+            entryList.innerHTML = '';
+            entries.forEach(entry => {
+                const entryBox = document.createElement('div');
+                entryBox.classList.add('entry-box');
+                entryBox.onclick = () => viewEntry(entry.id);
+                entryBox.innerHTML = `
+                    <h3>${entry.title}</h3>
+                    <h4>${entry.version}</h4>
+                    <div class="entry-date">${new Date(entry.date).toLocaleDateString()} ${new Date(entry.date).toLocaleTimeString()}</div>
+                `;
+                entryList.appendChild(entryBox);
+            });
+        }
+
+        function openEntryPopup() {
+            document.getElementById('modalTitle').textContent = "Add New Entry";
+            document.getElementById('entryId').value = '';
+            document.getElementById('entryTitle').value = '';
+            document.getElementById('entryVersion').value = '';
+            document.getElementById('entryDescription').value = '';
+            document.getElementById('entryBugs').value = '';
+            document.getElementById('pinEntry').value = '';
+            openModal('entryModal');
+        }
+
+        function viewEntry(id) {
+            const entry = entries.find(entry => entry.id === id);
+            if (entry) {
+                document.getElementById('viewEntryTitle').textContent = entry.title;
+                document.getElementById('viewEntryVersion').textContent = "Version: " + entry.version;
+                document.getElementById('viewEntryDate').textContent = "Date: " + new Date(entry.date).toLocaleString();
+                const descriptionList = document.getElementById('viewEntryDescription');
+                descriptionList.innerHTML = '';
+                entry.description.split('\n').forEach(line => {
+                    const li = document.createElement('li');
+                    li.textContent = line;
+                    descriptionList.appendChild(li);
+                });
+                const bugsList = document.getElementById('viewEntryBugs');
+                bugsList.innerHTML = '';
+                entry.bugs.split('\n').forEach(line => {
+                    const li = document.createElement('li');
+                    li.textContent = line;
+                    bugsList.appendChild(li);
+                });
+                document.getElementById('entryId').value = entry.id; // Set entry ID for editing
+                openModal('viewEntryModal');
+            }
+        }
+
+        function openEditEntryModal() {
+            const entryId = document.getElementById('entryId').value;
+            const entry = entries.find(entry => entry.id === entryId);
+            if (entry) {
+                document.getElementById('modalTitle').textContent = "Edit Entry";
+                document.getElementById('entryId').value = entry.id;
+                document.getElementById('entryTitle').value = entry.title;
+                document.getElementById('entryVersion').value = entry.version;
+                document.getElementById('entryDescription').value = entry.description;
+                document.getElementById('entryBugs').value = entry.bugs;
+                document.getElementById('pinEntry').value = '';
+                closeModal('viewEntryModal');
+                openModal('entryModal');
+            }
+        }
+
+        function openDeleteEntryModal() {
+            document.getElementById('deleteEntryTitle').value = '';
+            openModal('deleteEntryModal');
+        }
+
+        function confirmDeleteEntry() {
+            const titleToDelete = document.getElementById('deleteEntryTitle').value.trim();
+            const entryIndex = entries.findIndex(entry => entry.title.toLowerCase() === titleToDelete.toLowerCase());
+            if (entryIndex !== -1) {
+                entries.splice(entryIndex, 1);
+                localStorage.setItem('entries', JSON.stringify(entries));
+                renderEntries();
+                closeModal('deleteEntryModal');
+                showCustomAlert("Entry deleted successfully.");
+            } else {
+                showCustomAlert("Entry not found.");
+            }
+        }
+
+        function saveEntry() {
+            const id = document.getElementById('entryId').value || new Date().getTime().toString();
+            const title = document.getElementById('entryTitle').value.trim();
+            const version = document.getElementById('entryVersion').value.trim();
+            const description = document.getElementById('entryDescription').value.trim();
+            const bugs = document.getElementById('entryBugs').value.trim();
+            const pin = document.getElementById('pinEntry').value.trim();
+
+            if (!title || !version || !description || !pin) {
+                showCustomAlert("All fields must be filled out, including PIN.");
+                return;
+            }
+
+            if (pin !== PIN) {
+                showCustomAlert("Incorrect PIN.");
+                return;
+            }
+
+            const entry = { id, title, version, description, bugs, date: new Date().toISOString() };
+            const existingIndex = entries.findIndex(entry => entry.id === id);
+            if (existingIndex !== -1) {
+                entries[existingIndex] = entry;
+            } else {
+                entries.push(entry);
+            }
+
+            localStorage.setItem('entries', JSON.stringify(entries));
+            renderEntries();
+            closeModal('entryModal');
+            showCustomAlert("Entry saved successfully.");
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = "block";
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = "none";
+        }
+
+        function showCustomAlert(message) {
+            document.getElementById('customAlertMessage').textContent = message;
+            document.getElementById('customAlert').style.display = "block";
+        }
+
+        function closeCustomAlert() {
+            document.getElementById('customAlert').style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = "none";
+                }
+            });
+        };
+    </script>
+</body>
+</html>
