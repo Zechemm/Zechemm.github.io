@@ -1,4 +1,3 @@
-// Initialize variables and elements
 let loginSection, programSection, userProfileModal;
 
 document.addEventListener('DOMContentLoaded', function() {
